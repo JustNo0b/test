@@ -1,0 +1,13 @@
+# Список ТГ-каналов для мониторинга
+# Добавляйте username канала (без @)
+#
+# Пример:
+# channels:
+#   - username: durov
+#     tags: [tech, crypto]
+#   - username: breakingmash
+#     tags: [news]
+
+channels: []
+  # - username: channel_name
+  #   tags: [ai, edtech]
