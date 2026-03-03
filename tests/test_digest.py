@@ -27,7 +27,6 @@ async def db_with_posts(tmp_path):
             media_type=None,
             url=f"https://t.me/ai_channel/{i + 1}",
         )
-        await db.update_ad_flag(i + 1, is_ad=(i == 2), confidence=0.9)
 
     yield db
     await db.close()
@@ -49,8 +48,7 @@ async def test_generate_digest(db_with_posts, tmp_path):
 
     assert "Еженедельный дайджест" in html
     assert "@ai_channel" in html
-    assert "реклама (отфильтровано)" in html
-    assert "4" in html  # 4 content posts (1 was ad)
+    assert "5" in html
 
 
 @pytest.mark.asyncio
@@ -70,5 +68,5 @@ async def test_empty_digest(tmp_path):
     with open(path, encoding="utf-8") as f:
         html = f.read()
 
-    assert "0" in html  # 0 posts
+    assert "0" in html
     await db.close()

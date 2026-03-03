@@ -1,4 +1,4 @@
-"""SQLite storage for scraped posts and classification results."""
+"""SQLite storage for scraped posts."""
 
 from __future__ import annotations
 
@@ -24,8 +24,6 @@ CREATE TABLE IF NOT EXISTS posts (
     reactions_count INTEGER DEFAULT 0,
     media_type      TEXT,
     url             TEXT,
-    is_ad           BOOLEAN,
-    ad_confidence   REAL,
     scraped_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(channel_id, tg_message_id)
 );
@@ -39,7 +37,6 @@ CREATE TABLE IF NOT EXISTS digests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date);
-CREATE INDEX IF NOT EXISTS idx_posts_is_ad ON posts(is_ad);
 """
 
 
@@ -111,33 +108,16 @@ class Database:
         except aiosqlite.IntegrityError:
             return False
 
-    async def update_ad_flag(
-        self, post_id: int, is_ad: bool, confidence: float
-    ) -> None:
-        await self.conn.execute(
-            "UPDATE posts SET is_ad = ?, ad_confidence = ? WHERE id = ?",
-            (is_ad, confidence, post_id),
-        )
-        await self.conn.commit()
-
-    async def get_unclassified_posts(self) -> list[aiosqlite.Row]:
-        cursor = await self.conn.execute(
-            "SELECT id, text, url FROM posts WHERE is_ad IS NULL AND text IS NOT NULL"
-        )
-        return await cursor.fetchall()
-
     async def get_posts_for_period(
-        self, start_date: str, end_date: str, only_content: bool = True
+        self, start_date: str, end_date: str
     ) -> list[aiosqlite.Row]:
         query = """
             SELECT p.*, c.username as channel_username, c.title as channel_title
             FROM posts p
             JOIN channels c ON c.id = p.channel_id
             WHERE p.date >= ? AND p.date < ?
+            ORDER BY p.date DESC
         """
-        if only_content:
-            query += " AND (p.is_ad = 0 OR p.is_ad IS NULL)"
-        query += " ORDER BY p.date DESC"
         cursor = await self.conn.execute(query, (start_date, end_date))
         return await cursor.fetchall()
 

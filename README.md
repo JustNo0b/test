@@ -2,18 +2,11 @@
 
 Мини контент-заводик — полный цикл от мониторинга ТГ-каналов до публикации.
 
-## Архитектура
+## Что делает
 
-```
-Источники          →  Скиллы (skills/)     →  Хранилища (storage/)
-──────────────────    ──────────────────       ──────────────────
-21 ТГ-каналов      →  /monitor             →  monitor/ (HTML-дайджесты)
-Заметки ТГ         →  /ideas               →  ideas-bank
-Supabase           →  /calendar            →  Google Sheets
-Аналитика          →  /strategy            →  —
-                      /write               →  Публикация (TG + LinkedIn)
-                      /comment             →  approved-comments
-```
+- Ежедневно собирает посты из указанных Telegram-каналов
+- Генерирует красивый HTML-дайджест за неделю
+- Хранит все посты в локальной SQLite-базе
 
 ## Быстрый старт
 
@@ -29,7 +22,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Заполните .env:
 #   TELEGRAM_API_ID, TELEGRAM_API_HASH — с https://my.telegram.org
-#   OPENAI_API_KEY — ключ OpenAI API
+#   TELEGRAM_PHONE — ваш номер телефона
 ```
 
 ### 3. Добавить каналы
@@ -56,25 +49,21 @@ python main.py scrape
 # Собрать посты за конкретную дату
 python main.py scrape --date 2025-03-01
 
-# Классифицировать посты (реклама/контент)
-python main.py classify
-
 # Сгенерировать еженедельный дайджест
 python main.py digest
 
-# Полный пайплайн (скрапинг → классификация → дайджест)
+# Полный пайплайн (скрапинг → дайджест)
 python main.py pipeline
 ```
 
 ## Команды CLI
 
-| Команда     | Описание                                       |
-|-------------|------------------------------------------------|
-| `status`    | Статистика: каналы, посты, дайджесты           |
-| `scrape`    | Сбор постов из ТГ-каналов за дату              |
-| `classify`  | AI-классификация: реклама или контент           |
-| `digest`    | Генерация HTML-дайджеста за неделю             |
-| `pipeline`  | Полный цикл: скрапинг → классификация → дайджест |
+| Команда    | Описание                                |
+|------------|-----------------------------------------|
+| `status`   | Статистика: каналы, посты, дайджесты    |
+| `scrape`   | Сбор постов из ТГ-каналов за дату       |
+| `digest`   | Генерация HTML-дайджеста за неделю      |
+| `pipeline` | Полный цикл: скрапинг → дайджест       |
 
 ## Тестирование
 
@@ -94,7 +83,6 @@ pytest tests/ -v
 │   ├── cli.py              # CLI-интерфейс
 │   └── monitor/
 │       ├── scraper.py      # Скрапер ТГ-каналов (Telethon)
-│       ├── classifier.py   # AI-классификатор рекламы (OpenAI)
 │       ├── digest.py       # Генератор HTML-дайджестов (Jinja2)
 │       ├── database.py     # SQLite хранилище
 │       └── channels.py     # Загрузчик списка каналов
@@ -104,9 +92,7 @@ pytest tests/ -v
 │   ├── style-profile.md
 │   └── sample-posts.md
 ├── storage/                # Данные (gitignored)
-│   ├── monitor/            # HTML-дайджесты
-│   ├── ideas-bank/
-│   └── approved-comments/
+│   └── monitor/            # HTML-дайджесты
 └── tests/                  # Тесты
 ```
 
@@ -114,7 +100,6 @@ pytest tests/ -v
 
 - **Python 3.12+**
 - **Telethon** — Telegram client для чтения каналов
-- **OpenAI API** — классификация рекламы vs контента
 - **Jinja2** — шаблоны HTML-дайджестов
 - **SQLite (aiosqlite)** — локальное хранилище постов
 - **Click + Rich** — CLI с красивым выводом

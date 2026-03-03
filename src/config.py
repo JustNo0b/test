@@ -22,15 +22,8 @@ class TelegramConfig:
 
 
 @dataclass(frozen=True)
-class OpenAIConfig:
-    api_key: str = os.getenv("OPENAI_API_KEY", "")
-    model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-
-
-@dataclass(frozen=True)
 class AppConfig:
     telegram: TelegramConfig = field(default_factory=TelegramConfig)
-    openai: OpenAIConfig = field(default_factory=OpenAIConfig)
     database_path: str = os.getenv(
         "DATABASE_PATH", str(PROJECT_ROOT / "storage" / "content.db")
     )

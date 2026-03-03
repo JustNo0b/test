@@ -12,7 +12,6 @@ from rich.table import Table
 
 from src.config import get_config
 from src.monitor.channels import load_channels
-from src.monitor.classifier import AdClassifier
 from src.monitor.database import Database
 from src.monitor.digest import DigestGenerator
 from src.monitor.scraper import TelegramScraper
@@ -89,29 +88,6 @@ async def _scrape(target_date: datetime | None) -> None:
 
 
 @cli.command()
-def classify() -> None:
-    """Классифицировать новые посты (реклама / контент)."""
-    asyncio.run(_classify())
-
-
-async def _classify() -> None:
-    cfg = get_config()
-
-    if not cfg.openai.api_key:
-        console.print("[red]✗ Не задан OPENAI_API_KEY в .env[/red]")
-        return
-
-    db = Database(cfg.database_path)
-    await db.connect()
-
-    classifier = AdClassifier(cfg.openai.api_key, cfg.openai.model)
-    count = await classifier.classify_unprocessed(db)
-
-    await db.close()
-    console.print(f"[bold green]Классифицировано: {count} постов[/bold green]")
-
-
-@cli.command()
 @click.option("--start", "start_date", type=click.DateTime(["%Y-%m-%d"]),
               default=None, help="Начало периода")
 @click.option("--end", "end_date", type=click.DateTime(["%Y-%m-%d"]),
@@ -159,15 +135,6 @@ async def _status() -> None:
     cursor = await db.conn.execute("SELECT COUNT(*) FROM posts")
     total_posts = (await cursor.fetchone())[0]
 
-    cursor = await db.conn.execute("SELECT COUNT(*) FROM posts WHERE is_ad = 1")
-    ad_posts = (await cursor.fetchone())[0]
-
-    cursor = await db.conn.execute("SELECT COUNT(*) FROM posts WHERE is_ad = 0")
-    content_posts = (await cursor.fetchone())[0]
-
-    cursor = await db.conn.execute("SELECT COUNT(*) FROM posts WHERE is_ad IS NULL")
-    unclassified = (await cursor.fetchone())[0]
-
     cursor = await db.conn.execute("SELECT COUNT(*) FROM digests")
     digest_count = (await cursor.fetchone())[0]
 
@@ -178,9 +145,6 @@ async def _status() -> None:
     table.add_column("Значение", style="green")
 
     table.add_row("Всего постов", str(total_posts))
-    table.add_row("Контент", str(content_posts))
-    table.add_row("Реклама", str(ad_posts))
-    table.add_row("Не классифицировано", str(unclassified))
     table.add_row("Дайджестов", str(digest_count))
 
     console.print(table)
@@ -188,7 +152,7 @@ async def _status() -> None:
 
 @cli.command()
 def pipeline() -> None:
-    """Полный пайплайн: скрапинг → классификация → дайджест (еженедельно)."""
+    """Полный пайплайн: скрапинг → дайджест (еженедельно)."""
     asyncio.run(_pipeline())
 
 
@@ -202,19 +166,16 @@ async def _pipeline() -> None:
 
     console.print("[bold]🔄 Запуск полного пайплайна...[/bold]\n")
 
-    console.print("[bold cyan]1/3 Скрапинг постов за вчера[/bold cyan]")
+    console.print("[bold cyan]1/2 Скрапинг постов за вчера[/bold cyan]")
     await _scrape(None)
-
-    console.print("\n[bold cyan]2/3 Классификация постов[/bold cyan]")
-    await _classify()
 
     today = date.today()
     if today.weekday() == 0:
-        console.print("\n[bold cyan]3/3 Генерация еженедельного дайджеста[/bold cyan]")
+        console.print("\n[bold cyan]2/2 Генерация еженедельного дайджеста[/bold cyan]")
         await _digest(None, None)
     else:
         console.print(
-            f"\n[dim]3/3 Дайджест генерируется по понедельникам "
+            f"\n[dim]2/2 Дайджест генерируется по понедельникам "
             f"(сегодня — {today.strftime('%A')})[/dim]"
         )
 

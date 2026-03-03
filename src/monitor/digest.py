@@ -53,7 +53,6 @@ DIGEST_TEMPLATE = Template("""\
 <div class="stats">
   <div class="stat"><div class="num">{{ total_posts }}</div><div class="label">постов</div></div>
   <div class="stat"><div class="num">{{ channels_count }}</div><div class="label">каналов</div></div>
-  <div class="stat"><div class="num">{{ ad_count }}</div><div class="label">реклама (отфильтровано)</div></div>
 </div>
 
 {% for channel, posts in grouped_posts.items() %}
@@ -100,14 +99,11 @@ class DigestGenerator:
         start_str = week_start.isoformat()
         end_str = week_end.isoformat()
 
-        content_posts = await db.get_posts_for_period(start_str, end_str, only_content=True)
-        all_posts = await db.get_posts_for_period(start_str, end_str, only_content=False)
-
-        ad_count = len(all_posts) - len(content_posts)
+        posts = await db.get_posts_for_period(start_str, end_str)
 
         grouped: dict[str, list] = {}
         channel_titles: dict[str, str] = {}
-        for post in content_posts:
+        for post in posts:
             ch = post["channel_username"]
             if ch not in grouped:
                 grouped[ch] = []
@@ -126,9 +122,8 @@ class DigestGenerator:
         html = DIGEST_TEMPLATE.render(
             week_start=start_str,
             week_end=end_str,
-            total_posts=len(content_posts),
+            total_posts=len(posts),
             channels_count=len(grouped),
-            ad_count=ad_count,
             grouped_posts=grouped,
             channel_titles=channel_titles,
             generated_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
