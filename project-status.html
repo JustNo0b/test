@@ -659,7 +659,7 @@ function saveProject(){
     bigStatus: document.getElementById('fBigStatus').value.trim()
   };
 
-  const link = document.getElementById('fLink').value.trim();
+  const link = normalizeUrl(document.getElementById('fLink').value);
   const linkLabel = document.getElementById('fLinkLabel').value.trim();
 
   if(editId){
@@ -746,6 +746,13 @@ function importData(ev){
 
 /* ===================== LINK CHIP ===================== */
 
+function normalizeUrl(url){
+  if(!url) return '';
+  url = url.trim();
+  if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+  return url;
+}
+
 function detectLinkType(url){
   if(!url) return 'generic';
   const lower = url.toLowerCase();
@@ -759,6 +766,7 @@ function getLinkDomain(url){
 }
 
 function buildLinkChip(url, label, full){
+  url = normalizeUrl(url);
   const type = detectLinkType(url);
   const safeUrl = escHtml(url);
   let displayLabel = label;
