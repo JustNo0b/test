@@ -97,6 +97,17 @@
   .big-status{padding:16px;background:var(--surface2);border-radius:8px;font-size:.9rem;line-height:1.7;white-space:pre-wrap;min-height:60px}
   .card-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
 
+  /* Link chip */
+  .link-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 14px 5px 10px;border-radius:20px;font-size:.78rem;font-weight:600;text-decoration:none;transition:all .2s;max-width:220px;overflow:hidden;border:1.5px solid var(--border);color:var(--text2);background:var(--surface2)}
+  .link-chip:hover{border-color:var(--accent);color:var(--accent);background:#eef2ff;transform:translateY(-1px)}
+  .link-chip svg{flex-shrink:0}
+  .link-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .link-chip.jira{border-color:#0052cc40;color:#0052cc;background:#e9f2ff}
+  .link-chip.jira:hover{border-color:#0052cc;background:#deebff}
+  .link-chip.crm{border-color:#0891b240;color:#0891b2;background:#ecfeff}
+  .link-chip.crm:hover{border-color:#0891b2;background:#cffafe}
+  .links-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+
   /* Weekly history */
   .history-section{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
   .history-toggle{font-size:.85rem;font-weight:600;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0}
@@ -202,6 +213,16 @@
       <div class="field">
         <label>Название проекта</label>
         <input type="text" id="fName" placeholder="Введите название проекта">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Ссылка (Jira / CRM / другое)</label>
+          <input type="url" id="fLink" placeholder="https://jira.example.com/browse/PROJ-123">
+        </div>
+        <div class="field">
+          <label>Название ссылки <span style="font-weight:400;opacity:.6">(необязательно)</span></label>
+          <input type="text" id="fLinkLabel" placeholder="Авто: Jira, CRM или домен">
+        </div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -484,16 +505,21 @@ function renderProjects(emp){
         </div>
       </div>` : '';
 
+    const linkChip = p.link ? buildLinkChip(p.link, p.linkLabel) : '';
+    const linkRow = p.link ? `<div class="links-row">${buildLinkChip(p.link, p.linkLabel, true)}</div>` : '';
+
     return `
       <div class="project-card" data-id="${p.id}">
         <div class="card-header" onclick="toggleCard('${p.id}')">
           <div class="status-dot ${st}"></div>
           <div class="card-title">${escHtml(p.name)}</div>
+          ${linkChip}
           <div class="load-indicator" title="Загрузка: ${ld}/3">${loadBars}</div>
           <span class="status-badge ${st}">${STATUS_LABELS[st]}</span>
           <span class="chevron" id="chev-${p.id}">&#9662;</span>
         </div>
         <div class="card-body" id="body-${p.id}">
+          ${linkRow}
           <div class="written-status">${escHtml(written)}</div>
           ${big ? `<div class="big-status-title">Подробный статус</div><div class="big-status">${escHtml(big)}</div>` : ''}
           ${historyHTML}
@@ -595,12 +621,16 @@ function openProjectModal(editId){
     if(!p) return;
     const entry = getWeekEntry(p, currentWeek) || getLatestEntry(p, currentWeek) || {};
     document.getElementById('fName').value = p.name;
+    document.getElementById('fLink').value = p.link || '';
+    document.getElementById('fLinkLabel').value = p.linkLabel || '';
     document.getElementById('fStatus').value = entry.status || 'blue';
     document.getElementById('fLoad').value = entry.load || 1;
     document.getElementById('fWritten').value = entry.written || '';
     document.getElementById('fBigStatus').value = entry.bigStatus || '';
   } else {
     document.getElementById('fName').value = '';
+    document.getElementById('fLink').value = '';
+    document.getElementById('fLinkLabel').value = '';
     document.getElementById('fStatus').value = 'green';
     document.getElementById('fLoad').value = '1';
     document.getElementById('fWritten').value = '';
@@ -629,17 +659,22 @@ function saveProject(){
     bigStatus: document.getElementById('fBigStatus').value.trim()
   };
 
+  const link = document.getElementById('fLink').value.trim();
+  const linkLabel = document.getElementById('fLinkLabel').value.trim();
+
   if(editId){
     const p = (emp.projects||[]).find(x => x.id === editId);
     if(!p) return;
     p.name = name;
+    p.link = link;
+    p.linkLabel = linkLabel;
     const idx = (p.history || []).findIndex(h => h.week === currentWeek);
     if(idx >= 0) p.history[idx] = entry;
     else p.history.push(entry);
     toast('Проект обновлён');
   } else {
     if(!emp.projects) emp.projects = [];
-    emp.projects.push({id:'p'+Date.now(), name, history:[entry]});
+    emp.projects.push({id:'p'+Date.now(), name, link, linkLabel, history:[entry]});
     toast('Проект добавлен');
   }
 
@@ -707,6 +742,38 @@ function importData(ev){
   };
   reader.readAsText(file);
   ev.target.value = '';
+}
+
+/* ===================== LINK CHIP ===================== */
+
+function detectLinkType(url){
+  if(!url) return 'generic';
+  const lower = url.toLowerCase();
+  if(lower.includes('jira') || lower.includes('atlassian')) return 'jira';
+  if(lower.includes('crm') || lower.includes('salesforce') || lower.includes('hubspot') || lower.includes('bitrix') || lower.includes('amo')) return 'crm';
+  return 'generic';
+}
+
+function getLinkDomain(url){
+  try{ return new URL(url).hostname.replace('www.',''); } catch(e){ return ''; }
+}
+
+function buildLinkChip(url, label, full){
+  const type = detectLinkType(url);
+  const safeUrl = escHtml(url);
+  let displayLabel = label;
+  if(!displayLabel){
+    if(type === 'jira') displayLabel = 'Jira';
+    else if(type === 'crm') displayLabel = 'CRM';
+    else displayLabel = getLinkDomain(url) || 'Ссылка';
+  }
+  const cls = type === 'jira' ? ' jira' : type === 'crm' ? ' crm' : '';
+  const icon = type === 'jira'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.53 2c0 5.26 4.21 9.53 9.47 9.53v.94c-5.26 0-9.47 4.27-9.47 9.53h-.94c0-5.26-4.21-9.53-9.47-9.53v-.94C6.38 11.53 10.59 7.26 10.59 2h.94z"/></svg>'
+    : type === 'crm'
+    ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>'
+    : '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+  return `<a href="${safeUrl}" target="_blank" rel="noopener" class="link-chip${cls}" onclick="event.stopPropagation()" title="${safeUrl}">${icon}<span>${escHtml(displayLabel)}</span></a>`;
 }
 
 /* ===================== UTILS ===================== */
