@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Еженедельный статус проектов</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f0f2f5;--surface:#fff;--surface2:#f7f8fa;--text:#1a1a2e;--text2:#555;
+    --border:#e0e3e8;--shadow:0 2px 12px rgba(0,0,0,.07);
+    --green:#22c55e;--yellow:#eab308;--blue:#3b82f6;--red:#ef4444;
+    --green-bg:#ecfdf5;--yellow-bg:#fefce8;--blue-bg:#eff6ff;--red-bg:#fef2f2;
+    --accent:#6366f1;--accent-hover:#4f46e5;--radius:12px;
+  }
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+  .app{max-width:1200px;margin:0 auto;padding:24px 20px 60px}
+
+  /* Header */
+  .header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:32px}
+  .header h1{font-size:1.75rem;font-weight:700;letter-spacing:-.02em}
+  .header-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border:none;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px)}
+  .btn-outline{background:transparent;color:var(--text2);border:1.5px solid var(--border)}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-sm{padding:6px 14px;font-size:.8rem}
+  .btn-danger{background:#fee2e2;color:var(--red)}
+  .btn-danger:hover{background:var(--red);color:#fff}
+  .btn-icon{width:34px;height:34px;padding:0;justify-content:center;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s}
+  .btn-icon:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* Week selector */
+  .week-bar{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding:16px 20px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .week-bar label{font-weight:600;font-size:.9rem;white-space:nowrap}
+  .week-bar input[type=week]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;outline:none;transition:border .2s}
+  .week-bar input[type=week]:focus{border-color:var(--accent)}
+  .week-nav{display:flex;gap:6px}
+
+  /* Stats bar */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+  .stat-card{background:var(--surface);padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);text-align:center}
+  .stat-card .num{font-size:1.5rem;font-weight:700}
+  .stat-card .label{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+
+  /* Project cards */
+  .projects{display:flex;flex-direction:column;gap:16px}
+  .project-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:box-shadow .2s}
+  .project-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1)}
+  .card-header{display:flex;align-items:center;gap:16px;padding:20px 24px;cursor:pointer;user-select:none}
+  .card-header:hover{background:var(--surface2)}
+  .status-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+  .status-dot.green{background:var(--green)}
+  .status-dot.yellow{background:var(--yellow)}
+  .status-dot.blue{background:var(--blue)}
+  .status-dot.red{background:var(--red)}
+  .card-title{font-size:1.05rem;font-weight:700;flex:1}
+  .load-indicator{display:flex;gap:4px;align-items:center}
+  .load-bar{width:24px;height:8px;border-radius:4px;background:var(--border)}
+  .load-bar.active{background:var(--accent)}
+  .load-bar.active.high{background:var(--red)}
+  .load-bar.active.medium{background:var(--yellow)}
+  .status-badge{padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:600;white-space:nowrap}
+  .status-badge.green{background:var(--green-bg);color:#16a34a}
+  .status-badge.yellow{background:var(--yellow-bg);color:#a16207}
+  .status-badge.blue{background:var(--blue-bg);color:#2563eb}
+  .status-badge.red{background:var(--red-bg);color:#dc2626}
+  .chevron{transition:transform .3s;color:var(--text2);font-size:1.1rem}
+  .chevron.open{transform:rotate(180deg)}
+  .card-body{display:none;padding:0 24px 20px;animation:slideDown .3s ease}
+  .card-body.open{display:block}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .written-status{padding:12px 16px;background:var(--surface2);border-radius:8px;font-size:.9rem;color:var(--text2);margin-bottom:16px;border-left:3px solid var(--accent)}
+  .big-status-title{font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.03em;color:var(--text2);margin-bottom:10px}
+  .big-status{padding:16px;background:var(--surface2);border-radius:8px;font-size:.9rem;line-height:1.7;white-space:pre-wrap;min-height:60px}
+  .card-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+
+  /* Weekly history */
+  .history-section{margin-top:18px;border-top:1px solid var(--border);padding-top:16px}
+  .history-toggle{font-size:.85rem;font-weight:600;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0}
+  .history-toggle:hover{text-decoration:underline}
+  .history-list{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+  .history-item{padding:12px 16px;background:#fafbfc;border-radius:8px;border:1px solid var(--border);font-size:.85rem}
+  .history-item .hw{font-weight:600;color:var(--accent);margin-bottom:4px}
+  .history-item .hs{color:var(--text2);white-space:pre-wrap}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all .25s}
+  .modal-overlay.active{opacity:1;visibility:visible}
+  .modal{background:var(--surface);border-radius:16px;width:94%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:scale(.95);transition:transform .25s}
+  .modal-overlay.active .modal{transform:scale(1)}
+  .modal-head{padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between}
+  .modal-head h2{font-size:1.2rem;font-weight:700}
+  .modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text2);padding:4px}
+  .modal-close:hover{color:var(--text)}
+  .modal-body{padding:20px 28px 28px}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-weight:600;font-size:.85rem;margin-bottom:6px;color:var(--text2)}
+  .field input,.field select,.field textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;outline:none;transition:border .2s;background:var(--surface)}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+  .field textarea{resize:vertical;min-height:80px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;padding-top:8px}
+
+  /* Empty state */
+  .empty{text-align:center;padding:60px 20px;color:var(--text2)}
+  .empty svg{width:80px;height:80px;margin-bottom:16px;opacity:.35}
+  .empty p{font-size:1rem;margin-bottom:20px}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:12px 22px;border-radius:10px;font-size:.875rem;font-weight:500;opacity:0;transform:translateY(10px);transition:all .3s;z-index:2000;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  @media(max-width:640px){
+    .header{flex-direction:column;align-items:flex-start}
+    .field-row{grid-template-columns:1fr}
+    .card-header{padding:16px;flex-wrap:wrap}
+    .stats{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Статус проектов</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="exportData()" title="Экспорт данных">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Экспорт
+      </button>
+      <button class="btn btn-outline" onclick="document.getElementById('importFile').click()" title="Импорт данных">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Импорт
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-primary" onclick="openModal()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Новый проект
+      </button>
+    </div>
+  </div>
+
+  <div class="week-bar">
+    <label>Неделя:</label>
+    <div class="week-nav">
+      <button class="btn-icon" onclick="changeWeek(-1)" title="Предыдущая неделя">&#8249;</button>
+    </div>
+    <input type="week" id="weekPicker" onchange="onWeekChange()">
+    <div class="week-nav">
+      <button class="btn-icon" onclick="changeWeek(1)" title="Следующая неделя">&#8250;</button>
+    </div>
+  </div>
+
+  <div class="stats" id="statsBar"></div>
+  <div class="projects" id="projectList"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Новый проект</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="field">
+        <label>Название проекта</label>
+        <input type="text" id="fName" placeholder="Введите название проекта">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Статус задачи</label>
+          <select id="fStatus">
+            <option value="green">Запущен</option>
+            <option value="yellow">На согласовании</option>
+            <option value="blue">Есть задача</option>
+            <option value="red">Готов к передаче</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Загрузка (1–3)</label>
+          <select id="fLoad">
+            <option value="1">1 — Низкая</option>
+            <option value="2">2 — Средняя</option>
+            <option value="3">3 — Высокая</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Письменный статус</label>
+        <input type="text" id="fWritten" placeholder="Например: Запущено 24.02.15, ждем креативы">
+      </div>
+      <div class="field">
+        <label>Подробный статус (описание процесса)</label>
+        <textarea id="fBigStatus" rows="5" placeholder="Опишите текущий процесс работы над проектом…"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveProject()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteOverlay" onclick="if(event.target===this)closeDelete()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <h2>Удалить проект?</h2>
+      <button class="modal-close" onclick="closeDelete()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text2);margin-bottom:18px">Проект и вся его история будут удалены. Это действие нельзя отменить.</p>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeDelete()">Отмена</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STATUS_LABELS = {green:'Запущен',yellow:'На согласовании',blue:'Есть задача',red:'Готов к передаче'};
+const LOAD_LABELS = {1:'Низкая',2:'Средняя',3:'Высокая'};
+const STORAGE_KEY = 'projectStatusData';
+
+let data = loadData();
+let currentWeek = getCurrentWeek();
+
+document.getElementById('weekPicker').value = currentWeek;
+
+function getCurrentWeek(){
+  const d = new Date();
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((d - yearStart)/86400000)+1)/7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
+}
+
+function loadData(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {projects:[]}; }
+  catch(e){ return {projects:[]}; }
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getWeekEntry(project, week){
+  return (project.history || []).find(h => h.week === week);
+}
+function getLatestEntry(project, upToWeek){
+  if(!project.history || !project.history.length) return null;
+  const sorted = [...project.history].sort((a,b)=>b.week.localeCompare(a.week));
+  for(const h of sorted){
+    if(h.week <= upToWeek) return h;
+  }
+  return sorted[sorted.length - 1];
+}
+
+function onWeekChange(){
+  currentWeek = document.getElementById('weekPicker').value;
+  render();
+}
+function changeWeek(dir){
+  const picker = document.getElementById('weekPicker');
+  const parts = currentWeek.match(/(\d{4})-W(\d{2})/);
+  if(!parts) return;
+  let y = parseInt(parts[1]), w = parseInt(parts[2]);
+  w += dir;
+  if(w < 1){y--; w = 52;}
+  if(w > 52){y++; w = 1;}
+  currentWeek = `${y}-W${String(w).padStart(2,'0')}`;
+  picker.value = currentWeek;
+  render();
+}
+
+function weekLabel(weekStr){
+  const m = weekStr.match(/(\d{4})-W(\d{2})/);
+  if(!m) return weekStr;
+  return `Неделя ${parseInt(m[2])}, ${m[1]}`;
+}
+
+function render(){
+  renderStats();
+  renderProjects();
+}
+
+function renderStats(){
+  const container = document.getElementById('statsBar');
+  const total = data.projects.length;
+  let counts = {green:0,yellow:0,blue:0,red:0};
+  data.projects.forEach(p => {
+    const entry = getLatestEntry(p, currentWeek);
+    if(entry) counts[entry.status]++;
+    else counts['blue']++;
+  });
+  container.innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="label">Всего</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--green)">${counts.green}</div><div class="label">Запущены</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--yellow)">${counts.yellow}</div><div class="label">Согласование</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--blue)">${counts.blue}</div><div class="label">Есть задача</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--red)">${counts.red}</div><div class="label">К передаче</div></div>
+  `;
+}
+
+function renderProjects(){
+  const container = document.getElementById('projectList');
+  if(!data.projects.length){
+    container.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/>
+        </svg>
+        <p>Нет проектов. Добавьте первый проект, чтобы начать отслеживание.</p>
+        <button class="btn btn-primary" onclick="openModal()">Добавить проект</button>
+      </div>`;
+    return;
+  }
+  container.innerHTML = data.projects.map(p => {
+    const entry = getLatestEntry(p, currentWeek);
+    const st = entry ? entry.status : 'blue';
+    const ld = entry ? entry.load : 1;
+    const written = entry ? entry.written : '—';
+    const big = entry ? entry.bigStatus : '';
+    const hasCurrentWeek = getWeekEntry(p, currentWeek);
+
+    const loadBars = [1,2,3].map(i => {
+      const active = i <= ld;
+      const cls = ld === 3 ? 'high' : ld === 2 ? 'medium' : '';
+      return `<div class="load-bar ${active ? 'active '+cls : ''}"></div>`;
+    }).join('');
+
+    const historyItems = (p.history || [])
+      .filter(h => h.week <= currentWeek)
+      .sort((a,b) => b.week.localeCompare(a.week))
+      .slice(0, 12);
+
+    const historyHTML = historyItems.length > 1 ? `
+      <div class="history-section">
+        <button class="history-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none'; this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▸':'▾'">
+          <span>▸</span> История (${historyItems.length})
+        </button>
+        <div class="history-list" style="display:none">
+          ${historyItems.map(h => `
+            <div class="history-item">
+              <div class="hw">
+                <span class="status-dot ${h.status}" style="display:inline-block;width:8px;height:8px;vertical-align:middle;margin-right:6px"></span>
+                ${weekLabel(h.week)} — ${STATUS_LABELS[h.status]}, загрузка: ${h.load}
+              </div>
+              <div class="hs">${escHtml(h.written)}${h.bigStatus ? '\n\n'+escHtml(h.bigStatus) : ''}</div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
+    return `
+      <div class="project-card" data-id="${p.id}">
+        <div class="card-header" onclick="toggleCard('${p.id}')">
+          <div class="status-dot ${st}"></div>
+          <div class="card-title">${escHtml(p.name)}</div>
+          <div class="load-indicator" title="Загрузка: ${ld}/3">${loadBars}</div>
+          <span class="status-badge ${st}">${STATUS_LABELS[st]}</span>
+          <span class="chevron" id="chev-${p.id}">&#9662;</span>
+        </div>
+        <div class="card-body" id="body-${p.id}">
+          <div class="written-status">${escHtml(written)}</div>
+          ${big ? `<div class="big-status-title">Подробный статус</div><div class="big-status">${escHtml(big)}</div>` : ''}
+          ${historyHTML}
+          <div class="card-actions">
+            <button class="btn btn-sm btn-outline" onclick="openModal('${p.id}')" title="${hasCurrentWeek ? 'Редактировать' : 'Обновить на эту неделю'}">
+              ${hasCurrentWeek ? 'Редактировать' : 'Обновить на неделю'}
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="confirmDelete('${p.id}')">Удалить</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleCard(id){
+  const body = document.getElementById('body-'+id);
+  const chev = document.getElementById('chev-'+id);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function openModal(editId){
+  document.getElementById('editId').value = editId || '';
+  document.getElementById('modalTitle').textContent = editId ? 'Редактировать проект' : 'Новый проект';
+
+  if(editId){
+    const p = data.projects.find(x => x.id === editId);
+    if(!p) return;
+    const entry = getWeekEntry(p, currentWeek) || getLatestEntry(p, currentWeek) || {};
+    document.getElementById('fName').value = p.name;
+    document.getElementById('fStatus').value = entry.status || 'blue';
+    document.getElementById('fLoad').value = entry.load || 1;
+    document.getElementById('fWritten').value = entry.written || '';
+    document.getElementById('fBigStatus').value = entry.bigStatus || '';
+  } else {
+    document.getElementById('fName').value = '';
+    document.getElementById('fStatus').value = 'green';
+    document.getElementById('fLoad').value = '1';
+    document.getElementById('fWritten').value = '';
+    document.getElementById('fBigStatus').value = '';
+  }
+  document.getElementById('modalOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('fName').focus(), 150);
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function saveProject(){
+  const editId = document.getElementById('editId').value;
+  const name = document.getElementById('fName').value.trim();
+  if(!name){ toast('Введите название проекта'); return; }
+
+  const entry = {
+    week: currentWeek,
+    status: document.getElementById('fStatus').value,
+    load: parseInt(document.getElementById('fLoad').value),
+    written: document.getElementById('fWritten').value.trim(),
+    bigStatus: document.getElementById('fBigStatus').value.trim()
+  };
+
+  if(editId){
+    const p = data.projects.find(x => x.id === editId);
+    if(!p) return;
+    p.name = name;
+    const idx = (p.history || []).findIndex(h => h.week === currentWeek);
+    if(idx >= 0) p.history[idx] = entry;
+    else p.history.push(entry);
+  } else {
+    data.projects.push({
+      id: 'p' + Date.now(),
+      name,
+      history: [entry]
+    });
+  }
+
+  saveData();
+  closeModal();
+  render();
+  toast(editId ? 'Проект обновлён' : 'Проект добавлен');
+}
+
+let deleteTarget = null;
+function confirmDelete(id){
+  deleteTarget = id;
+  document.getElementById('deleteOverlay').classList.add('active');
+  document.getElementById('confirmDeleteBtn').onclick = () => {
+    data.projects = data.projects.filter(p => p.id !== deleteTarget);
+    saveData();
+    closeDelete();
+    render();
+    toast('Проект удалён');
+  };
+}
+function closeDelete(){
+  document.getElementById('deleteOverlay').classList.remove('active');
+  deleteTarget = null;
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `project-status-${currentWeek}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Данные экспортированы');
+}
+
+function importData(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(imported.projects){
+        data = imported;
+        saveData();
+        render();
+        toast('Данные импортированы');
+      } else {
+        toast('Неверный формат файла');
+      }
+    } catch(err){ toast('Ошибка чтения файла'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+function escHtml(s){
+  if(!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    closeModal();
+    closeDelete();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
