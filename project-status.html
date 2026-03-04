@@ -17,7 +17,7 @@
   .app{max-width:1200px;margin:0 auto;padding:24px 20px 60px}
 
   /* Header */
-  .header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:32px}
+  .header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px}
   .header h1{font-size:1.75rem;font-weight:700;letter-spacing:-.02em}
   .header-actions{display:flex;gap:10px;flex-wrap:wrap}
 
@@ -30,8 +30,25 @@
   .btn-sm{padding:6px 14px;font-size:.8rem}
   .btn-danger{background:#fee2e2;color:var(--red)}
   .btn-danger:hover{background:var(--red);color:#fff}
-  .btn-icon{width:34px;height:34px;padding:0;justify-content:center;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s}
+  .btn-icon{width:34px;height:34px;padding:0;display:inline-flex;justify-content:center;align-items:center;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all .2s}
   .btn-icon:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* Employee tabs */
+  .tabs-bar{display:flex;align-items:stretch;gap:0;margin-bottom:24px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;position:relative}
+  .tabs-scroll{display:flex;align-items:stretch;overflow-x:auto;flex:1;scrollbar-width:none;-ms-overflow-style:none}
+  .tabs-scroll::-webkit-scrollbar{display:none}
+  .tab{padding:14px 22px;font-size:.9rem;font-weight:600;cursor:pointer;white-space:nowrap;border:none;background:none;color:var(--text2);position:relative;transition:all .2s;display:flex;align-items:center;gap:8px;border-bottom:3px solid transparent}
+  .tab:hover{background:var(--surface2);color:var(--text)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface2)}
+  .tab .tab-count{font-size:.7rem;background:var(--border);color:var(--text2);border-radius:10px;padding:1px 7px;font-weight:700}
+  .tab.active .tab-count{background:var(--accent);color:#fff}
+  .tab-actions{display:flex;gap:2px;margin-left:4px;opacity:0;transition:opacity .15s}
+  .tab:hover .tab-actions,.tab.active .tab-actions{opacity:1}
+  .tab-action-btn{width:22px;height:22px;border:none;background:none;cursor:pointer;border-radius:4px;color:var(--text2);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .15s;padding:0}
+  .tab-action-btn:hover{background:var(--border);color:var(--text)}
+  .tab-action-btn.del:hover{background:#fee2e2;color:var(--red)}
+  .tab-add{padding:14px 18px;cursor:pointer;border:none;background:none;color:var(--accent);font-size:1.2rem;font-weight:700;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .tab-add:hover{background:var(--surface2)}
 
   /* Week selector */
   .week-bar{display:flex;align-items:center;gap:12px;margin-bottom:28px;padding:16px 20px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow)}
@@ -39,6 +56,8 @@
   .week-bar input[type=week]{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;outline:none;transition:border .2s}
   .week-bar input[type=week]:focus{border-color:var(--accent)}
   .week-nav{display:flex;gap:6px}
+  .current-employee-name{margin-left:auto;font-weight:600;font-size:.9rem;color:var(--accent);display:flex;align-items:center;gap:6px}
+  .current-employee-name svg{opacity:.6}
 
   /* Stats bar */
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px}
@@ -119,6 +138,8 @@
     .field-row{grid-template-columns:1fr}
     .card-header{padding:16px;flex-wrap:wrap}
     .stats{grid-template-columns:repeat(2,1fr)}
+    .tab{padding:12px 16px;font-size:.85rem}
+    .current-employee-name{display:none}
   }
 </style>
 </head>
@@ -137,11 +158,17 @@
         Импорт
       </button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      <button class="btn btn-primary" onclick="openModal()">
+      <button class="btn btn-primary" onclick="openProjectModal()">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         Новый проект
       </button>
     </div>
+  </div>
+
+  <!-- Employee tabs -->
+  <div class="tabs-bar">
+    <div class="tabs-scroll" id="tabsScroll"></div>
+    <button class="tab-add" onclick="openEmployeeModal()" title="Добавить сотрудника">+</button>
   </div>
 
   <div class="week-bar">
@@ -153,21 +180,25 @@
     <div class="week-nav">
       <button class="btn-icon" onclick="changeWeek(1)" title="Следующая неделя">&#8250;</button>
     </div>
+    <div class="current-employee-name" id="currentEmployeeLabel">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="currentEmployeeName"></span>
+    </div>
   </div>
 
   <div class="stats" id="statsBar"></div>
   <div class="projects" id="projectList"></div>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+<!-- Project modal -->
+<div class="modal-overlay" id="projectModalOverlay" onclick="if(event.target===this)closeProjectModal()">
   <div class="modal">
     <div class="modal-head">
-      <h2 id="modalTitle">Новый проект</h2>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h2 id="projectModalTitle">Новый проект</h2>
+      <button class="modal-close" onclick="closeProjectModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="editId">
+      <input type="hidden" id="editProjectId">
       <div class="field">
         <label>Название проекта</label>
         <input type="text" id="fName" placeholder="Введите название проекта">
@@ -200,8 +231,29 @@
         <textarea id="fBigStatus" rows="5" placeholder="Опишите текущий процесс работы над проектом…"></textarea>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+        <button class="btn btn-outline" onclick="closeProjectModal()">Отмена</button>
         <button class="btn btn-primary" onclick="saveProject()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Employee modal -->
+<div class="modal-overlay" id="employeeModalOverlay" onclick="if(event.target===this)closeEmployeeModal()">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <h2 id="employeeModalTitle">Новый сотрудник</h2>
+      <button class="modal-close" onclick="closeEmployeeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editEmployeeId">
+      <div class="field">
+        <label>Имя сотрудника</label>
+        <input type="text" id="fEmployeeName" placeholder="Введите имя сотрудника">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeEmployeeModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveEmployee()">Сохранить</button>
       </div>
     </div>
   </div>
@@ -209,13 +261,13 @@
 
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteOverlay" onclick="if(event.target===this)closeDelete()">
-  <div class="modal" style="max-width:400px">
+  <div class="modal" style="max-width:420px">
     <div class="modal-head">
-      <h2>Удалить проект?</h2>
+      <h2 id="deleteTitle">Удалить?</h2>
       <button class="modal-close" onclick="closeDelete()">&times;</button>
     </div>
     <div class="modal-body">
-      <p style="color:var(--text2);margin-bottom:18px">Проект и вся его история будут удалены. Это действие нельзя отменить.</p>
+      <p id="deleteMessage" style="color:var(--text2);margin-bottom:18px"></p>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeDelete()">Отмена</button>
         <button class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
@@ -228,10 +280,10 @@
 
 <script>
 const STATUS_LABELS = {green:'Запущен',yellow:'На согласовании',blue:'Есть задача',red:'Готов к передаче'};
-const LOAD_LABELS = {1:'Низкая',2:'Средняя',3:'Высокая'};
-const STORAGE_KEY = 'projectStatusData';
+const STORAGE_KEY = 'projectStatusData_v2';
 
 let data = loadData();
+let activeEmployeeId = data.employees.length ? data.employees[0].id : null;
 let currentWeek = getCurrentWeek();
 
 document.getElementById('weekPicker').value = currentWeek;
@@ -246,11 +298,27 @@ function getCurrentWeek(){
 }
 
 function loadData(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {projects:[]}; }
-  catch(e){ return {projects:[]}; }
+  try{
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(raw && raw.employees) return raw;
+  } catch(e){}
+  // Migrate from v1 if exists
+  try{
+    const v1 = JSON.parse(localStorage.getItem('projectStatusData'));
+    if(v1 && v1.projects && v1.projects.length){
+      const migrated = {employees:[{id:'e1',name:'Сотрудник 1',projects:v1.projects}]};
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch(e){}
+  return {employees:[]};
 }
 function saveData(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getActiveEmployee(){
+  return data.employees.find(e => e.id === activeEmployeeId) || null;
 }
 
 function getWeekEntry(project, week){
@@ -267,7 +335,7 @@ function getLatestEntry(project, upToWeek){
 
 function onWeekChange(){
   currentWeek = document.getElementById('weekPicker').value;
-  render();
+  renderContent();
 }
 function changeWeek(dir){
   const picker = document.getElementById('weekPicker');
@@ -279,7 +347,7 @@ function changeWeek(dir){
   if(w > 52){y++; w = 1;}
   currentWeek = `${y}-W${String(w).padStart(2,'0')}`;
   picker.value = currentWeek;
-  render();
+  renderContent();
 }
 
 function weekLabel(weekStr){
@@ -288,16 +356,60 @@ function weekLabel(weekStr){
   return `Неделя ${parseInt(m[2])}, ${m[1]}`;
 }
 
-function render(){
-  renderStats();
-  renderProjects();
+/* ===================== RENDERING ===================== */
+
+function renderAll(){
+  renderTabs();
+  renderContent();
 }
 
-function renderStats(){
+function renderTabs(){
+  const container = document.getElementById('tabsScroll');
+  if(!data.employees.length){
+    container.innerHTML = '<div style="padding:14px 22px;color:var(--text2);font-size:.9rem">Добавьте сотрудника, чтобы начать работу &rarr;</div>';
+    return;
+  }
+  container.innerHTML = data.employees.map(emp => {
+    const count = (emp.projects || []).length;
+    const isActive = emp.id === activeEmployeeId;
+    return `
+      <div class="tab ${isActive ? 'active' : ''}" onclick="switchTab('${emp.id}')">
+        <span>${escHtml(emp.name)}</span>
+        <span class="tab-count">${count}</span>
+        <span class="tab-actions" onclick="event.stopPropagation()">
+          <button class="tab-action-btn" onclick="openEmployeeModal('${emp.id}')" title="Переименовать">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          </button>
+          <button class="tab-action-btn del" onclick="confirmDeleteEmployee('${emp.id}')" title="Удалить">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </span>
+      </div>`;
+  }).join('');
+}
+
+function renderContent(){
+  const emp = getActiveEmployee();
+  const nameEl = document.getElementById('currentEmployeeName');
+  const labelEl = document.getElementById('currentEmployeeLabel');
+  if(emp){
+    nameEl.textContent = emp.name;
+    labelEl.style.display = '';
+  } else {
+    nameEl.textContent = '';
+    labelEl.style.display = 'none';
+  }
+  renderStats(emp);
+  renderProjects(emp);
+}
+
+function renderStats(emp){
   const container = document.getElementById('statsBar');
-  const total = data.projects.length;
+  if(!emp){container.innerHTML='';return;}
+  const projects = emp.projects || [];
+  const total = projects.length;
   let counts = {green:0,yellow:0,blue:0,red:0};
-  data.projects.forEach(p => {
+  projects.forEach(p => {
     const entry = getLatestEntry(p, currentWeek);
     if(entry) counts[entry.status]++;
     else counts['blue']++;
@@ -311,20 +423,32 @@ function renderStats(){
   `;
 }
 
-function renderProjects(){
+function renderProjects(emp){
   const container = document.getElementById('projectList');
-  if(!data.projects.length){
+  if(!emp){
+    container.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <p>Добавьте первого сотрудника, чтобы начать отслеживание проектов.</p>
+        <button class="btn btn-primary" onclick="openEmployeeModal()">Добавить сотрудника</button>
+      </div>`;
+    return;
+  }
+  const projects = emp.projects || [];
+  if(!projects.length){
     container.innerHTML = `
       <div class="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/>
         </svg>
-        <p>Нет проектов. Добавьте первый проект, чтобы начать отслеживание.</p>
-        <button class="btn btn-primary" onclick="openModal()">Добавить проект</button>
+        <p>У сотрудника <strong>${escHtml(emp.name)}</strong> пока нет проектов.</p>
+        <button class="btn btn-primary" onclick="openProjectModal()">Добавить проект</button>
       </div>`;
     return;
   }
-  container.innerHTML = data.projects.map(p => {
+  container.innerHTML = projects.map(p => {
     const entry = getLatestEntry(p, currentWeek);
     const st = entry ? entry.status : 'blue';
     const ld = entry ? entry.load : 1;
@@ -374,10 +498,10 @@ function renderProjects(){
           ${big ? `<div class="big-status-title">Подробный статус</div><div class="big-status">${escHtml(big)}</div>` : ''}
           ${historyHTML}
           <div class="card-actions">
-            <button class="btn btn-sm btn-outline" onclick="openModal('${p.id}')" title="${hasCurrentWeek ? 'Редактировать' : 'Обновить на эту неделю'}">
+            <button class="btn btn-sm btn-outline" onclick="openProjectModal('${p.id}')" title="${hasCurrentWeek ? 'Редактировать' : 'Обновить на эту неделю'}">
               ${hasCurrentWeek ? 'Редактировать' : 'Обновить на неделю'}
             </button>
-            <button class="btn btn-sm btn-danger" onclick="confirmDelete('${p.id}')">Удалить</button>
+            <button class="btn btn-sm btn-danger" onclick="confirmDeleteProject('${p.id}')">Удалить</button>
           </div>
         </div>
       </div>`;
@@ -391,12 +515,83 @@ function toggleCard(id){
   chev.classList.toggle('open');
 }
 
-function openModal(editId){
-  document.getElementById('editId').value = editId || '';
-  document.getElementById('modalTitle').textContent = editId ? 'Редактировать проект' : 'Новый проект';
+/* ===================== TAB SWITCHING ===================== */
+
+function switchTab(empId){
+  activeEmployeeId = empId;
+  renderAll();
+}
+
+/* ===================== EMPLOYEE MODAL ===================== */
+
+function openEmployeeModal(editId){
+  document.getElementById('editEmployeeId').value = editId || '';
+  document.getElementById('employeeModalTitle').textContent = editId ? 'Переименовать сотрудника' : 'Новый сотрудник';
+  if(editId){
+    const emp = data.employees.find(e => e.id === editId);
+    document.getElementById('fEmployeeName').value = emp ? emp.name : '';
+  } else {
+    document.getElementById('fEmployeeName').value = '';
+  }
+  document.getElementById('employeeModalOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('fEmployeeName').focus(), 150);
+}
+
+function closeEmployeeModal(){
+  document.getElementById('employeeModalOverlay').classList.remove('active');
+}
+
+function saveEmployee(){
+  const editId = document.getElementById('editEmployeeId').value;
+  const name = document.getElementById('fEmployeeName').value.trim();
+  if(!name){ toast('Введите имя сотрудника'); return; }
 
   if(editId){
-    const p = data.projects.find(x => x.id === editId);
+    const emp = data.employees.find(e => e.id === editId);
+    if(emp) emp.name = name;
+    toast('Сотрудник переименован');
+  } else {
+    const newId = 'e' + Date.now();
+    data.employees.push({id:newId, name, projects:[]});
+    activeEmployeeId = newId;
+    toast('Сотрудник добавлен');
+  }
+  saveData();
+  closeEmployeeModal();
+  renderAll();
+}
+
+function confirmDeleteEmployee(empId){
+  const emp = data.employees.find(e => e.id === empId);
+  if(!emp) return;
+  document.getElementById('deleteTitle').textContent = 'Удалить сотрудника?';
+  document.getElementById('deleteMessage').textContent = `Сотрудник «${emp.name}» и все его проекты (${(emp.projects||[]).length}) будут удалены. Это действие нельзя отменить.`;
+  document.getElementById('deleteOverlay').classList.add('active');
+  document.getElementById('confirmDeleteBtn').onclick = () => {
+    data.employees = data.employees.filter(e => e.id !== empId);
+    if(activeEmployeeId === empId){
+      activeEmployeeId = data.employees.length ? data.employees[0].id : null;
+    }
+    saveData();
+    closeDelete();
+    renderAll();
+    toast('Сотрудник удалён');
+  };
+}
+
+/* ===================== PROJECT MODAL ===================== */
+
+function openProjectModal(editId){
+  if(!getActiveEmployee()){
+    toast('Сначала добавьте сотрудника');
+    return;
+  }
+  document.getElementById('editProjectId').value = editId || '';
+  document.getElementById('projectModalTitle').textContent = editId ? 'Редактировать проект' : 'Новый проект';
+
+  if(editId){
+    const emp = getActiveEmployee();
+    const p = (emp.projects||[]).find(x => x.id === editId);
     if(!p) return;
     const entry = getWeekEntry(p, currentWeek) || getLatestEntry(p, currentWeek) || {};
     document.getElementById('fName').value = p.name;
@@ -411,16 +606,18 @@ function openModal(editId){
     document.getElementById('fWritten').value = '';
     document.getElementById('fBigStatus').value = '';
   }
-  document.getElementById('modalOverlay').classList.add('active');
+  document.getElementById('projectModalOverlay').classList.add('active');
   setTimeout(() => document.getElementById('fName').focus(), 150);
 }
 
-function closeModal(){
-  document.getElementById('modalOverlay').classList.remove('active');
+function closeProjectModal(){
+  document.getElementById('projectModalOverlay').classList.remove('active');
 }
 
 function saveProject(){
-  const editId = document.getElementById('editId').value;
+  const emp = getActiveEmployee();
+  if(!emp) return;
+  const editId = document.getElementById('editProjectId').value;
   const name = document.getElementById('fName').value.trim();
   if(!name){ toast('Введите название проекта'); return; }
 
@@ -433,42 +630,46 @@ function saveProject(){
   };
 
   if(editId){
-    const p = data.projects.find(x => x.id === editId);
+    const p = (emp.projects||[]).find(x => x.id === editId);
     if(!p) return;
     p.name = name;
     const idx = (p.history || []).findIndex(h => h.week === currentWeek);
     if(idx >= 0) p.history[idx] = entry;
     else p.history.push(entry);
+    toast('Проект обновлён');
   } else {
-    data.projects.push({
-      id: 'p' + Date.now(),
-      name,
-      history: [entry]
-    });
+    if(!emp.projects) emp.projects = [];
+    emp.projects.push({id:'p'+Date.now(), name, history:[entry]});
+    toast('Проект добавлен');
   }
 
   saveData();
-  closeModal();
-  render();
-  toast(editId ? 'Проект обновлён' : 'Проект добавлен');
+  closeProjectModal();
+  renderAll();
 }
 
-let deleteTarget = null;
-function confirmDelete(id){
-  deleteTarget = id;
+function confirmDeleteProject(projId){
+  const emp = getActiveEmployee();
+  if(!emp) return;
+  const p = (emp.projects||[]).find(x => x.id === projId);
+  if(!p) return;
+  document.getElementById('deleteTitle').textContent = 'Удалить проект?';
+  document.getElementById('deleteMessage').textContent = `Проект «${p.name}» и вся его история будут удалены. Это действие нельзя отменить.`;
   document.getElementById('deleteOverlay').classList.add('active');
   document.getElementById('confirmDeleteBtn').onclick = () => {
-    data.projects = data.projects.filter(p => p.id !== deleteTarget);
+    emp.projects = (emp.projects||[]).filter(x => x.id !== projId);
     saveData();
     closeDelete();
-    render();
+    renderAll();
     toast('Проект удалён');
   };
 }
+
 function closeDelete(){
   document.getElementById('deleteOverlay').classList.remove('active');
-  deleteTarget = null;
 }
+
+/* ===================== EXPORT / IMPORT ===================== */
 
 function exportData(){
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -487,11 +688,18 @@ function importData(ev){
   reader.onload = e => {
     try{
       const imported = JSON.parse(e.target.result);
-      if(imported.projects){
+      if(imported.employees){
         data = imported;
+        activeEmployeeId = data.employees.length ? data.employees[0].id : null;
         saveData();
-        render();
+        renderAll();
         toast('Данные импортированы');
+      } else if(imported.projects){
+        data = {employees:[{id:'e1',name:'Сотрудник 1',projects:imported.projects}]};
+        activeEmployeeId = 'e1';
+        saveData();
+        renderAll();
+        toast('Данные импортированы (из старого формата)');
       } else {
         toast('Неверный формат файла');
       }
@@ -500,6 +708,8 @@ function importData(ev){
   reader.readAsText(file);
   ev.target.value = '';
 }
+
+/* ===================== UTILS ===================== */
 
 function escHtml(s){
   if(!s) return '';
@@ -515,12 +725,13 @@ function toast(msg){
 
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){
-    closeModal();
+    closeProjectModal();
+    closeEmployeeModal();
     closeDelete();
   }
 });
 
-render();
+renderAll();
 </script>
 </body>
 </html>
