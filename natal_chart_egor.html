@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Натальная карта — Егор</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0d0d1a;
+    --bg-card: #151528;
+    --bg-card-alt: #1a1a35;
+    --bg-table-header: #1e1e42;
+    --bg-table-row: rgba(255,255,255,0.02);
+    --bg-table-row-alt: rgba(255,255,255,0.05);
+    --text: #e8e6f0;
+    --text-muted: #9895b0;
+    --text-dim: #6b6888;
+    --accent-gold: #d4a843;
+    --accent-gold-light: #f0d078;
+    --accent-purple: #8b6cc7;
+    --accent-purple-light: #b08ef5;
+    --accent-blue: #4a8fc7;
+    --accent-red: #c75a5a;
+    --accent-green: #5ac78b;
+    --border: rgba(255,255,255,0.08);
+    --border-accent: rgba(212,168,67,0.3);
+    --shadow: 0 4px 30px rgba(0,0,0,0.4);
+    --glow-gold: 0 0 40px rgba(212,168,67,0.15);
+    --glow-purple: 0 0 60px rgba(139,108,199,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(139,108,199,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(212,168,67,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(74,143,199,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 30px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    text-align: center;
+    padding: 60px 20px 50px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .header::before {
+    content: '☉ ☽ ☿ ♀ ♂ ♃ ♄ ♅ ♆ ♇';
+    display: block;
+    font-size: 13px;
+    letter-spacing: 12px;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+    opacity: 0.6;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--accent-gold-light);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    text-shadow: 0 0 40px rgba(212,168,67,0.3);
+  }
+
+  .header .subtitle {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--accent-purple-light);
+    margin-bottom: 30px;
+  }
+
+  .header-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 30px;
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: left;
+    font-size: 13.5px;
+  }
+
+  .header-meta .meta-item {
+    color: var(--text-muted);
+  }
+
+  .header-meta .meta-label {
+    color: var(--text-dim);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    margin: 40px 0;
+    opacity: 0.3;
+  }
+
+  .divider-thin {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 30px 0;
+  }
+
+  /* ─── Section ─── */
+  .section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 35px 30px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-gold), var(--accent-purple), transparent);
+    opacity: 0.5;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--accent-gold-light);
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+
+  .section-title .icon {
+    margin-right: 10px;
+    font-size: 22px;
+  }
+
+  h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--accent-purple-light);
+    margin: 28px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(139,108,199,0.15);
+  }
+
+  h3:first-child { margin-top: 0; }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent-gold);
+    margin: 18px 0 8px;
+  }
+
+  p {
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  strong {
+    color: var(--accent-gold-light);
+    font-weight: 600;
+  }
+
+  em {
+    color: var(--accent-purple-light);
+    font-style: italic;
+  }
+
+  /* ─── Tables ─── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+
+  thead th {
+    background: var(--bg-table-header);
+    color: var(--accent-gold);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-accent);
+  }
+
+  thead th:first-child { border-radius: 8px 0 0 0; }
+  thead th:last-child { border-radius: 0 8px 0 0; }
+
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tbody tr:nth-child(even) { background: var(--bg-table-row-alt); }
+  tbody tr:nth-child(odd) { background: var(--bg-table-row); }
+  tbody tr:hover { background: rgba(139,108,199,0.08); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .planet-symbol { font-size: 18px; margin-right: 6px; vertical-align: middle; }
+  .sign-symbol { font-size: 16px; margin-left: 4px; opacity: 0.7; }
+  .retro { color: var(--accent-red); font-weight: 600; }
+
+  /* ─── Lists ─── */
+  ul {
+    margin: 10px 0 14px 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  ul li {
+    position: relative;
+    padding: 4px 0 4px 22px;
+    color: var(--text);
+  }
+
+  ul li::before {
+    content: '◇';
+    position: absolute;
+    left: 0;
+    color: var(--accent-gold);
+    font-size: 10px;
+    top: 8px;
+  }
+
+  /* ─── Aspect badges ─── */
+  .aspect-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 90px;
+    text-align: center;
+  }
+
+  .asp-conjunction { background: rgba(212,168,67,0.2); color: var(--accent-gold-light); }
+  .asp-trine { background: rgba(90,199,139,0.2); color: var(--accent-green); }
+  .asp-sextile { background: rgba(74,143,199,0.2); color: var(--accent-blue); }
+  .asp-square { background: rgba(199,90,90,0.2); color: var(--accent-red); }
+  .asp-opposition { background: rgba(199,90,90,0.15); color: #e08080; }
+
+  /* ─── Element bars ─── */
+  .element-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .element-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .element-icon {
+    font-size: 28px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  .el-fire .element-icon { background: rgba(255,100,50,0.15); }
+  .el-earth .element-icon { background: rgba(100,180,80,0.15); }
+  .el-air .element-icon { background: rgba(100,180,255,0.15); }
+  .el-water .element-icon { background: rgba(100,120,255,0.15); }
+
+  .element-info { flex: 1; }
+  .element-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .element-count { font-size: 12px; color: var(--text-muted); }
+
+  .element-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .element-bar-fill { height: 100%; border-radius: 2px; }
+  .el-fire .element-bar-fill { background: linear-gradient(90deg, #ff6432, #ff9050); }
+  .el-earth .element-bar-fill { background: linear-gradient(90deg, #64b450, #90d870); }
+  .el-air .element-bar-fill { background: linear-gradient(90deg, #64b4ff, #90d0ff); }
+  .el-water .element-bar-fill { background: linear-gradient(90deg, #6478ff, #90a0ff); }
+
+  /* ─── Cross bars ─── */
+  .cross-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .cross-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .cross-count {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent-purple-light);
+  }
+
+  .cross-name {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .cross-planets {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* ─── Key aspect highlight ─── */
+  .key-aspect {
+    background: var(--bg-card-alt);
+    border-left: 3px solid var(--accent-gold);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin: 14px 0;
+  }
+
+  .key-aspect .aspect-title {
+    font-weight: 600;
+    color: var(--accent-gold-light);
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .key-aspect .aspect-orb {
+    font-size: 12px;
+    color: var(--accent-purple-light);
+    margin-bottom: 8px;
+  }
+
+  /* ─── Config cards ─── */
+  .config-card {
+    background: var(--bg-card-alt);
+    border: 1px solid rgba(139,108,199,0.15);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+
+  .config-card h4 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    color: var(--accent-purple-light);
+    margin: 0 0 6px;
+  }
+
+  .config-card .config-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  /* ─── Portrait ─── */
+  .portrait-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .portrait-card {
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .portrait-card h4 {
+    margin-top: 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .strength-card { background: rgba(90,199,139,0.06); border-color: rgba(90,199,139,0.15); }
+  .strength-card h4 { color: var(--accent-green); }
+
+  .growth-card { background: rgba(199,90,90,0.06); border-color: rgba(199,90,90,0.15); }
+  .growth-card h4 { color: var(--accent-red); }
+
+  .career-card {
+    grid-column: 1 / -1;
+    background: rgba(74,143,199,0.06);
+    border-color: rgba(74,143,199,0.15);
+  }
+  .career-card h4 { color: var(--accent-blue); }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    margin-top: 50px;
+    padding: 30px;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-style: italic;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 700px) {
+    .container { padding: 20px 16px 60px; }
+    .header h1 { font-size: 32px; }
+    .header .subtitle { font-size: 18px; }
+    .header-meta { grid-template-columns: 1fr; }
+    .section { padding: 24px 18px; }
+    .element-grid { grid-template-columns: 1fr; }
+    .cross-grid { grid-template-columns: 1fr; }
+    .portrait-grid { grid-template-columns: 1fr; }
+    table { font-size: 12px; }
+    thead th, tbody td { padding: 8px 10px; }
+  }
+
+  @media print {
+    body { background: #fff; color: #222; }
+    .section { box-shadow: none; border-color: #ddd; }
+    .header h1 { color: #333; text-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ════════════ HEADER ════════════ -->
+  <div class="header">
+    <h1>Натальная карта</h1>
+    <div class="subtitle">Егор</div>
+    <div class="header-meta">
+      <div class="meta-item">
+        <span class="meta-label">Дата рождения</span>
+        24 октября 1996, 01:32
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Место</span>
+        Москва, Россия
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Координаты</span>
+        55.75° с.ш., 37.62° в.д.
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Часовой пояс</span>
+        Europe/Moscow (GMT+4 летнее)
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Система домов</span>
+        Плацидус
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Зодиак</span>
+        Тропический
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ ПЛАНЕТЫ ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">☉</span> Положения планет</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Планета</th>
+          <th>Знак</th>
+          <th>Градус</th>
+          <th>Дом</th>
+          <th>Ретро</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="planet-symbol">☉</span> Солнце</td><td>Скорпион <span class="sign-symbol">♏</span></td><td>0°46'</td><td>III</td><td></td></tr>
+        <tr><td><span class="planet-symbol">☽</span> Луна</td><td>Рыбы <span class="sign-symbol">♓</span></td><td>25°41'</td><td>VIII</td><td></td></tr>
+        <tr><td><span class="planet-symbol">☿</span> Меркурий</td><td>Весы <span class="sign-symbol">♎</span></td><td>24°41'</td><td>III</td><td></td></tr>
+        <tr><td><span class="planet-symbol">♀</span> Венера</td><td>Дева <span class="sign-symbol">♍</span></td><td>23°16'</td><td>II</td><td></td></tr>
+        <tr><td><span class="planet-symbol">♂</span> Марс</td><td>Лев <span class="sign-symbol">♌</span></td><td>26°25'</td><td>I</td><td></td></tr>
+        <tr><td><span class="planet-symbol">♃</span> Юпитер</td><td>Козерог <span class="sign-symbol">♑</span></td><td>11°35'</td><td>V</td><td></td></tr>
+        <tr><td><span class="planet-symbol">♄</span> Сатурн</td><td>Овен <span class="sign-symbol">♈</span></td><td>1°59'</td><td>VIII</td><td><span class="retro">R</span></td></tr>
+        <tr><td><span class="planet-symbol">♅</span> Уран</td><td>Водолей <span class="sign-symbol">♒</span></td><td>0°43'</td><td>VI</td><td></td></tr>
+        <tr><td><span class="planet-symbol">♆</span> Нептун</td><td>Козерог <span class="sign-symbol">♑</span></td><td>25°04'</td><td>VI</td><td></td></tr>
+        <tr><td><span class="planet-symbol">♇</span> Плутон</td><td>Стрелец <span class="sign-symbol">♐</span></td><td>1°46'</td><td>IV</td><td></td></tr>
+        <tr><td><span class="planet-symbol">⚷</span> Хирон</td><td>Весы <span class="sign-symbol">♎</span></td><td>21°50'</td><td>III</td><td></td></tr>
+        <tr><td><span class="planet-symbol">☊</span> Сев. Узел</td><td>Весы <span class="sign-symbol">♎</span></td><td>7°57'</td><td>III</td><td></td></tr>
+        <tr><td><span class="planet-symbol">☋</span> Юж. Узел</td><td>Овен <span class="sign-symbol">♈</span></td><td>7°57'</td><td>IX</td><td></td></tr>
+        <tr><td><span class="planet-symbol">⚸</span> Лилит</td><td>Лев <span class="sign-symbol">♌</span></td><td>13°43'</td><td>XII</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ════════════ ДОМА ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">⌂</span> Куспиды домов — Плацидус</div>
+    <table>
+      <thead>
+        <tr><th>Дом</th><th>Знак</th><th>Градус</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>I (ASC)</strong></td><td>Лев <span class="sign-symbol">♌</span></td><td>22°24'</td></tr>
+        <tr><td>II</td><td>Дева <span class="sign-symbol">♍</span></td><td>9°34'</td></tr>
+        <tr><td>III</td><td>Весы <span class="sign-symbol">♎</span></td><td>2°52'</td></tr>
+        <tr><td><strong>IV (IC)</strong></td><td>Скорпион <span class="sign-symbol">♏</span></td><td>5°29'</td></tr>
+        <tr><td>V</td><td>Стрелец <span class="sign-symbol">♐</span></td><td>17°02'</td></tr>
+        <tr><td>VI</td><td>Козерог <span class="sign-symbol">♑</span></td><td>24°28'</td></tr>
+        <tr><td><strong>VII (DSC)</strong></td><td>Водолей <span class="sign-symbol">♒</span></td><td>22°24'</td></tr>
+        <tr><td>VIII</td><td>Рыбы <span class="sign-symbol">♓</span></td><td>9°34'</td></tr>
+        <tr><td>IX</td><td>Овен <span class="sign-symbol">♈</span></td><td>2°52'</td></tr>
+        <tr><td><strong>X (MC)</strong></td><td>Телец <span class="sign-symbol">♉</span></td><td>5°29'</td></tr>
+        <tr><td>XI</td><td>Близнецы <span class="sign-symbol">♊</span></td><td>17°02'</td></tr>
+        <tr><td>XII</td><td>Рак <span class="sign-symbol">♋</span></td><td>24°28'</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ════════════ СТИХИИ И КРЕСТЫ ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">◈</span> Распределение энергий</div>
+
+    <h3>Стихии</h3>
+    <div class="element-grid">
+      <div class="element-card el-fire">
+        <div class="element-icon">🔥</div>
+        <div class="element-info">
+          <div class="element-name">Огонь — 3</div>
+          <div class="element-count">Марс, Сатурн(R), Плутон</div>
+          <div class="element-bar"><div class="element-bar-fill" style="width:75%"></div></div>
+        </div>
+      </div>
+      <div class="element-card el-earth">
+        <div class="element-icon">🌍</div>
+        <div class="element-info">
+          <div class="element-name">Земля — 3</div>
+          <div class="element-count">Венера, Юпитер, Нептун</div>
+          <div class="element-bar"><div class="element-bar-fill" style="width:75%"></div></div>
+        </div>
+      </div>
+      <div class="element-card el-air">
+        <div class="element-icon">💨</div>
+        <div class="element-info">
+          <div class="element-name">Воздух — 2</div>
+          <div class="element-count">Меркурий, Уран</div>
+          <div class="element-bar"><div class="element-bar-fill" style="width:50%"></div></div>
+        </div>
+      </div>
+      <div class="element-card el-water">
+        <div class="element-icon">💧</div>
+        <div class="element-info">
+          <div class="element-name">Вода — 2</div>
+          <div class="element-count">Солнце, Луна</div>
+          <div class="element-bar"><div class="element-bar-fill" style="width:50%"></div></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted);">Баланс стихий достаточно равномерный с лёгким акцентом на Огне и Земле — сочетание энергии действия и практичности.</p>
+
+    <h3>Кресты</h3>
+    <div class="cross-grid">
+      <div class="cross-card">
+        <div class="cross-count">4</div>
+        <div class="cross-name">Кардинальный</div>
+        <div class="cross-planets">Меркурий, Венера, Юпитер, Сатурн(R)</div>
+      </div>
+      <div class="cross-card">
+        <div class="cross-count">3</div>
+        <div class="cross-name">Фиксированный</div>
+        <div class="cross-planets">Солнце, Марс, Уран</div>
+      </div>
+      <div class="cross-card">
+        <div class="cross-count">3</div>
+        <div class="cross-name">Мутабельный</div>
+        <div class="cross-planets">Луна, Нептун, Плутон</div>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted);">Равномерный баланс — способность начинать, удерживать и адаптироваться.</p>
+  </div>
+
+  <!-- ════════════ АСПЕКТЫ ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">✦</span> Ключевые аспекты</div>
+
+    <h3>Сверхточные аспекты (орбис &lt; 1°)</h3>
+    <table>
+      <thead><tr><th>Аспект</th><th>Планета 1</th><th>Планета 2</th><th>Орбис</th></tr></thead>
+      <tbody>
+        <tr><td><span class="aspect-badge asp-square">□ Квадрат</span></td><td>Солнце</td><td>Уран</td><td><strong>0.03°</strong></td></tr>
+        <tr><td><span class="aspect-badge asp-trine">△ Трин</span></td><td>Сатурн (R)</td><td>Плутон</td><td><strong>0.22°</strong></td></tr>
+        <tr><td><span class="aspect-badge asp-square">□ Квадрат</span></td><td>Меркурий</td><td>Нептун</td><td><strong>0.37°</strong></td></tr>
+        <tr><td><span class="aspect-badge asp-sextile">⚹ Секстиль</span></td><td>Хирон</td><td>Асцендент</td><td><strong>0.57°</strong></td></tr>
+        <tr><td><span class="aspect-badge asp-sextile">⚹ Секстиль</span></td><td>Луна</td><td>Нептун</td><td><strong>0.62°</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Другие значимые аспекты</h3>
+    <table>
+      <thead><tr><th>Аспект</th><th>Планета 1</th><th>Планета 2</th><th>Орбис</th></tr></thead>
+      <tbody>
+        <tr><td><span class="aspect-badge asp-sextile">⚹ Секстиль</span></td><td>Уран</td><td>Плутон</td><td>1.05°</td></tr>
+        <tr><td><span class="aspect-badge asp-sextile">⚹ Секстиль</span></td><td>Сатурн</td><td>Уран</td><td>1.26°</td></tr>
+        <tr><td><span class="aspect-badge asp-sextile">⚹ Секстиль</span></td><td>Меркурий</td><td>Марс</td><td>1.71°</td></tr>
+        <tr><td><span class="aspect-badge asp-trine">△ Трин</span></td><td>Венера</td><td>Нептун</td><td>1.79°</td></tr>
+        <tr><td><span class="aspect-badge asp-opposition">☍ Оппозиция</span></td><td>Луна</td><td>Венера</td><td>2.41°</td></tr>
+        <tr><td><span class="aspect-badge asp-conjunction">☌ Соединение</span></td><td>Марс</td><td>Асцендент</td><td>4.01°</td></tr>
+        <tr><td><span class="aspect-badge asp-sextile">⚹ Секстиль</span></td><td>Солнце</td><td>Марс</td><td>4.35°</td></tr>
+        <tr><td><span class="aspect-badge asp-square">□ Квадрат</span></td><td>Уран</td><td>MC</td><td>4.76°</td></tr>
+        <tr><td><span class="aspect-badge asp-conjunction">☌ Соединение</span></td><td>Солнце</td><td>Меркурий</td><td>6.06°</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ════════════ ПОДРОБНЫЙ РАЗБОР ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔮</span> Подробный разбор</div>
+
+    <h3>Асцендент во Льве (22°24')</h3>
+    <p>Асцендент (восходящий знак) — это «маска», которую человек надевает при встрече с миром, первое впечатление, которое он производит.</p>
+    <p><strong>Лев на Асценденте</strong> даёт:</p>
+    <ul>
+      <li>Яркую, запоминающуюся внешность и манеру поведения</li>
+      <li>Природную харизму и умение привлекать внимание</li>
+      <li>Царственную осанку, достоинство в самопрезентации</li>
+      <li>Тёплое, щедрое отношение к окружающим</li>
+      <li>Потребность быть замеченным и оценённым</li>
+      <li>Творческий подход к жизни</li>
+    </ul>
+    <p><strong>Марс в I доме (во Льве)</strong> усиливает эти качества: энергичность, решительность, боевой дух видны невооружённым глазом. Егор производит впечатление человека активного, волевого, уверенного в себе. Марс в I доме даёт спортивное телосложение или тягу к физической активности. Человек прямолинеен в поведении и не склонен прятать свои намерения.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>☉ Солнце в Скорпионе (0°46') — III дом</h3>
+    <p>Солнце в самом начале Скорпиона, в III доме коммуникаций и ближайшего окружения.</p>
+    <p><strong>Скорпион</strong> наделяет глубиной, проницательностью, мощной волей. Человек не довольствуется поверхностными ответами — ему нужна правда. Стремление к трансформации, способность перерождаться после кризисов.</p>
+    <p><strong>III дом</strong> фокусирует солнечную энергию на:</p>
+    <ul>
+      <li>Общении, передаче информации, обучении</li>
+      <li>Отношениях с братьями/сёстрами, соседями, ближним кругом</li>
+      <li>Интеллектуальной деятельности, написании текстов, анализе</li>
+      <li>Коротких поездках, повседневных контактах</li>
+    </ul>
+    <p>Солнце в III доме Скорпиона — это человек, который умеет говорить так, что его слова пронизывают до глубины. Речь может быть острой, точной, исследовательской. Возможен талант к журналистике расследований, психологическому анализу, глубокому изучению любой темы.</p>
+
+    <div class="key-aspect">
+      <div class="aspect-title">☉ Солнце □ Уран — самый точный аспект карты</div>
+      <div class="aspect-orb">Орбис: 0.03° — практически точное соединение по градусу</div>
+      <ul>
+        <li>Бунтарский дух, непринятие навязанных рамок и шаблонов</li>
+        <li>Резкие, неожиданные перемены жизненного курса</li>
+        <li>Потребность в свободе и оригинальности</li>
+        <li>Электрическая, магнетическая энергетика</li>
+        <li>Талант к инновациям и нестандартным решениям</li>
+        <li>Напряжение между скорпионьей потребностью в контроле и уранической жаждой свободы</li>
+        <li>Яркая индивидуальность, которая не вписывается в стандартные рамки</li>
+      </ul>
+    </div>
+
+    <p><strong>Солнце в секстиле к Марсу</strong> — воля и действие работают согласованно. Решительность и умение реализовывать задуманное.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>☽ Луна в Рыбах (25°41') — VIII дом</h3>
+    <p>Положение Луны — одно из самых эмоционально глубоких в зодиаке. Рыбы + VIII дом — двойной акцент на глубине, тайне, чувствительности.</p>
+    <p><strong>Луна в Рыбах</strong> даёт:</p>
+    <ul>
+      <li>Чрезвычайно развитую интуицию и эмпатию</li>
+      <li>Способность чувствовать настроение людей без слов</li>
+      <li>Богатый внутренний мир, яркое воображение</li>
+      <li>Потребность в уединении для восстановления</li>
+      <li>Сострадательность и отзывчивость</li>
+      <li>Возможную склонность к эскапизму (уход от реальности в мечты, творчество, музыку)</li>
+    </ul>
+    <p><strong>VIII дом</strong> (дом трансформации, чужих ресурсов, глубинных процессов) добавляет:</p>
+    <ul>
+      <li>Эмоциональную интенсивность и глубину переживаний</li>
+      <li>Интерес к тайнам, психологии, оккультизму</li>
+      <li>Способность к эмоциональной регенерации</li>
+      <li>Тему наследства, чужих денег, инвестиций в эмоциональном контексте</li>
+      <li>Притяжение к кризисным ситуациям и умение через них проходить</li>
+    </ul>
+
+    <div class="key-aspect">
+      <div class="aspect-title">☽ Луна ⚹ Нептун — диспозиторная связь</div>
+      <div class="aspect-orb">Орбис: 0.62°</div>
+      <p>Нептун — управитель Рыб, поэтому этот аспект особенно мощный: Луна получает «благословение» своего диспозитора. Усиливает мечтательность, творческие способности, интуицию. Тонкое восприятие музыки, визуальных образов, атмосферы.</p>
+    </div>
+
+    <p><strong>Луна в оппозиции к Венере (орбис 2.41°)</strong> — напряжение между эмоциональными потребностями (Рыбы, VIII дом — глубокая привязанность) и стилем любви (Дева, II дом — практичность, критичность). Необходимо учиться балансировать между мечтательной эмоциональностью и рационалистическим подходом к отношениям.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>☿ Меркурий в Весах (24°41') — III дом</h3>
+    <p>Меркурий в III доме — в «своём» доме, что усиливает его проявления.</p>
+    <ul>
+      <li>Дипломатичное, взвешенное мышление</li>
+      <li>Умение видеть разные стороны вопроса</li>
+      <li>Талант к переговорам и убеждению</li>
+      <li>Красивая речь, грамотное самовыражение</li>
+      <li>Стремление к справедливости в суждениях</li>
+    </ul>
+
+    <div class="key-aspect">
+      <div class="aspect-title">☿ Меркурий □ Нептун</div>
+      <div class="aspect-orb">Орбис: 0.37°</div>
+      <ul>
+        <li>Невероятно богатое воображение</li>
+        <li>Талант к творческому письму, поэзии, музыке</li>
+        <li>Способность мыслить образами и метафорами</li>
+        <li><em>Зона внимания:</em> может быть сложно отделить факты от фантазий</li>
+        <li>Склонность к идеализации людей и ситуаций</li>
+        <li>Медиумические и интуитивные способности в интеллектуальной сфере</li>
+      </ul>
+    </div>
+
+    <p><strong>Меркурий в секстиле к Марсу</strong> — острый ум, быстрая реакция, умение отстаивать свою позицию.</p>
+    <p><strong>Меркурий в секстиле к Асценденту</strong> — речь и внешнее впечатление хорошо согласованы. Умеет подать себя через слова.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>♀ Венера в Деве (23°16') — II дом</h3>
+    <ul>
+      <li>Практичный подход к любви и финансам</li>
+      <li>Забота выражается через конкретные действия, помощь</li>
+      <li>Высокие стандарты к партнёру и себе</li>
+      <li>Внимание к деталям в отношениях</li>
+      <li>Бережливость, умение распоряжаться ресурсами</li>
+      <li>Ценит чистоту, порядок, здоровый образ жизни</li>
+    </ul>
+    <p><strong>Венера в трине к Нептуну (1.79°)</strong> — при всей практичности Девы есть мечтательная, романтическая сторона. Тонкое чувство красоты, способность к самоотверженной любви.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>♂ Марс во Льве (26°25') — I дом</h3>
+    <p>Марс в I доме — одно из самых сильных положений для Марса:</p>
+    <ul>
+      <li>Физическая активность, спортивность</li>
+      <li>Прямолинейность, смелость, лидерские качества</li>
+      <li>Яркое, уверенное самовыражение</li>
+      <li>Сильная воля и инициативность</li>
+      <li>Творческий подход к действиям (Лев)</li>
+      <li>Гордость и достоинство в поступках</li>
+    </ul>
+
+    <div class="divider-thin"></div>
+
+    <h3>♃ Юпитер в Козероге (11°35') — V дом</h3>
+    <p>Юпитер в падении, но в V доме (доме творчества, удовольствий, детей, романтики):</p>
+    <ul>
+      <li>Рост и удача приходят через упорный труд и дисциплину</li>
+      <li>Серьёзный подход к творчеству и развлечениям</li>
+      <li>Амбиции в творческих проектах</li>
+      <li>Удовольствие от структурированной деятельности</li>
+      <li>Ответственное отношение к вопросам, связанным с детьми</li>
+    </ul>
+
+    <div class="divider-thin"></div>
+
+    <h3>♄ Сатурн (R) в Овне (1°59') — VIII дом</h3>
+    <p>Сатурн ретроградный в VIII доме — серьёзная, глубокая конфигурация:</p>
+    <ul>
+      <li>Внутренняя проработка тем смерти/перерождения, кризисов, чужих ресурсов</li>
+      <li>Страх перед потерей контроля, который со временем прорабатывается</li>
+      <li>Ответственность в обращении с чужими деньгами/ресурсами</li>
+      <li>С возрастом — глубокая мудрость о природе кризисов и трансформаций</li>
+      <li>Ретроградность: процесс осмысления идёт внутри, не на показ</li>
+    </ul>
+
+    <div class="key-aspect">
+      <div class="aspect-title">♄ Сатурн △ Плутон — стальной стержень</div>
+      <div class="aspect-orb">Орбис: 0.22° — мощнейший трин в огненных знаках</div>
+      <ul>
+        <li>Невероятная выносливость и стойкость</li>
+        <li>Способность к системной, глубокой трансформации</li>
+        <li>Умение выдерживать давление и выходить победителем</li>
+        <li>Талант к стратегическому мышлению</li>
+      </ul>
+    </div>
+
+    <p><strong>Сатурн в секстиле к Урану (1.26°)</strong> — способность сочетать традиции и инновации. Прагматичный реформатор.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>♅ Уран в Водолее (0°43') — VI дом</h3>
+    <p>Уран в своём знаке — очень силён:</p>
+    <ul>
+      <li>Инновационный подход к работе и здоровью (VI дом)</li>
+      <li>Нестандартные методы в повседневной деятельности</li>
+      <li>Может работать в IT, технологиях, науке</li>
+      <li>Нетерпимость к рутине — нужна свобода в рабочем процессе</li>
+    </ul>
+    <p><strong>Квадрат к MC (4.76°)</strong> — напряжение между потребностью в свободе на работе и карьерными ожиданиями общества.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>♆ Нептун в Козероге (25°04') — VI дом</h3>
+    <p>Мечты и идеалы канализируются в практическую, повседневную деятельность. Духовность через работу и служение.</p>
+
+    <div class="divider-thin"></div>
+
+    <h3>♇ Плутон в Стрельце (1°46') — IV дом</h3>
+    <p>Трансформация корней, семьи, дома. Глубинные изменения в семейной системе. Возможны переезды, кардинальные перемены жизненного пространства. Философский подход к теме рода и корней.</p>
+  </div>
+
+  <!-- ════════════ ОСЬ УЗЛОВ ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">☊</span> Ось Лунных Узлов</div>
+
+    <div class="config-card">
+      <h4>☊ Северный Узел в Весах — III дом</h4>
+      <div class="config-desc">Кармическая задача — направление роста</div>
+      <ul>
+        <li>Развитие навыков общения, дипломатии, партнёрства в ближайшем окружении</li>
+        <li>Умение слушать и слышать другого</li>
+        <li>Баланс в повседневных контактах</li>
+        <li>Обучение как путь развития</li>
+        <li>Написание, преподавание, посредничество</li>
+      </ul>
+    </div>
+
+    <div class="config-card">
+      <h4>☋ Южный Узел в Овне — IX дом</h4>
+      <div class="config-desc">Привычные паттерны — зона комфорта</div>
+      <ul>
+        <li>Стремление к самостоятельному философствованию</li>
+        <li>Привычка опираться на собственное мировоззрение без учёта мнения других</li>
+        <li>Комфорт в далёких путешествиях и абстрактных концепциях</li>
+      </ul>
+    </div>
+
+    <p style="text-align:center; color:var(--accent-gold-light); font-family:'Cormorant Garamond',serif; font-size:18px; font-style:italic; margin-top:20px;">
+      От одинокого философа — к мастеру диалога.<br>
+      От «я знаю истину» — к «давай найдём истину вместе».
+    </p>
+  </div>
+
+  <!-- ════════════ КОНФИГУРАЦИИ ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">⬡</span> Ключевые конфигурации</div>
+
+    <div class="config-card">
+      <h4>1. Огненный трин: Сатурн(R) △ Плутон</h4>
+      <div class="config-desc">Овен (VIII) — Стрелец (IV) · Орбис 0.22°</div>
+      <p>Два тяжеловеса связаны точнейшим гармоничным аспектом:</p>
+      <ul>
+        <li>Стальной стержень характера</li>
+        <li>Способность к глубочайшей трансформации через дисциплину</li>
+        <li>Стратегическое мышление, видящее на много ходов вперёд</li>
+        <li>Умение управлять кризисами</li>
+      </ul>
+    </div>
+
+    <div class="config-card">
+      <h4>2. Квадрат Солнце □ Уран</h4>
+      <div class="config-desc">Скорпион — Водолей · Орбис 0.03° — точнейший аспект карты</div>
+      <p>Ядро личности: постоянное напряжение между глубиной (Скорпион) и свободой (Водолей), между контролем и непредсказуемостью. Это внутренний мотор перемен — Егор никогда не остановится на достигнутом.</p>
+    </div>
+
+    <div class="config-card">
+      <h4>3. Водная чувствительность: Луна ⚹ Нептун</h4>
+      <div class="config-desc">Рыбы (VIII) — Козерог (VI) · Орбис 0.62°</div>
+      <p>Невероятная интуитивная и эмпатическая одарённость. Способность «считывать» людей и ситуации на бессознательном уровне.</p>
+    </div>
+
+    <div class="config-card">
+      <h4>4. Марс на Асценденте</h4>
+      <div class="config-desc">Лев (I дом) · Орбис 4.01°</div>
+      <p>Мощная энергетика, которая чувствуется при первом контакте. Человек действия с яркой харизмой.</p>
+    </div>
+  </div>
+
+  <!-- ════════════ ОБЩИЙ ПОРТРЕТ ════════════ -->
+  <div class="section">
+    <div class="section-title"><span class="icon">★</span> Общий портрет</div>
+
+    <p>Егор — человек с яркой, царственной внешней подачей <em>(Асцендент во Льве, Марс в I доме)</em> и глубочайшим внутренним миром <em>(Солнце в Скорпионе, Луна в Рыбах в VIII доме)</em>. На поверхности — уверенность, решительность, харизма. Внутри — океан эмоций, интуиции, тонких восприятий.</p>
+
+    <p>Квадрат Солнце-Уран с орбисом 0.03° — это подпись нонконформиста и новатора. Стандартные пути не для него. Жизнь будет полна резких поворотов и неожиданных решений, и именно в этом — его сила.</p>
+
+    <p>Связка Сатурн-Плутон в трине даёт стальной стержень, который позволяет выдерживать любые кризисы. А Луна в секстиле к Нептуну наделяет мощнейшей интуицией — Егор часто «знает» вещи, которые невозможно знать рационально.</p>
+
+    <div class="divider-thin"></div>
+
+    <div class="portrait-grid">
+      <div class="portrait-card strength-card">
+        <h4>Сильные стороны</h4>
+        <ul>
+          <li>Яркая харизма и природное лидерство</li>
+          <li>Глубокая проницательность и мощная интуиция</li>
+          <li>Стальная выносливость и стойкость</li>
+          <li>Нестандартное мышление и инновационность</li>
+          <li>Дипломатичность и красноречие</li>
+          <li>Творческое воображение</li>
+        </ul>
+      </div>
+
+      <div class="portrait-card growth-card">
+        <h4>Зоны развития</h4>
+        <ul>
+          <li>Баланс между контролем и свободой</li>
+          <li>Отделение фантазий от реальности</li>
+          <li>Гармонизация эмоций и стиля любви</li>
+          <li>Проработка страхов потери контроля</li>
+          <li>Обучение партнёрству и компромиссам</li>
+        </ul>
+      </div>
+
+      <div class="portrait-card career-card">
+        <h4>Профессиональные склонности</h4>
+        <ul>
+          <li>Психология, психотерапия, исследования глубинных процессов</li>
+          <li>Технологии и инновации, IT</li>
+          <li>Творчество: музыка, литература, визуальные искусства</li>
+          <li>Финансы, управление чужими ресурсами, инвестиции</li>
+          <li>Журналистика расследований, аналитика</li>
+          <li>Консалтинг, медиация, переговоры</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ FOOTER ════════════ -->
+  <div class="footer">
+    <p>Расчёт выполнен с помощью Swiss Ephemeris (Kerykeion) · Система Плацидус · Тропический зодиак</p>
+    <p style="margin-top:6px;">24 октября 1996, 01:32 · Москва, Россия</p>
+  </div>
+
+</div>
+
+</body>
+</html>
