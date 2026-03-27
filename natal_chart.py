@@ -7,8 +7,8 @@ subject = factory.from_birth_data(
     year=1996,
     month=10,
     day=24,
-    hour=12,
-    minute=0,
+    hour=1,
+    minute=32,
     city="Moscow",
     nation="RU",
     zodiac_type="Tropical",
@@ -67,10 +67,10 @@ output = []
 output.append("=" * 70)
 output.append("НАТАЛЬНАЯ КАРТА — ЕГОР")
 output.append("=" * 70)
-output.append(f"Дата рождения:  24 октября 1996 года")
+output.append(f"Дата рождения:  24 октября 1996 года, 01:32")
 output.append(f"Место рождения: Москва, Россия ({subject.lat:.4f}° с.ш., {subject.lng:.4f}° в.д.)")
 output.append(f"Часовой пояс:   {subject.tz_str}")
-output.append(f"Время:          12:00 (время не указано, принято полдень)")
+output.append(f"UTC время:      {subject.iso_formatted_utc_datetime}")
 output.append(f"Система домов:  Плацидус")
 output.append(f"Зодиак:         Тропический")
 output.append(f"Юлианский день: {subject.julian_day:.6f}")
